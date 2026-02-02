@@ -9,6 +9,10 @@ class Usuario extends Authenticatable
     protected $table = 'usuario';
     protected $primaryKey = 'id_usuario';
     public $timestamps = false;
+    protected $rememberTokenName = null;
+
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'nombre',
@@ -17,7 +21,6 @@ class Usuario extends Authenticatable
         'correo',
         'id_estado',
         'id_rol',
-
     ];
 
     public function estado()
@@ -29,9 +32,9 @@ class Usuario extends Authenticatable
     {
         return $this->hasOne(Credencial::class, 'id_usuario');
     }
-    public function rol()
-{
-    return $this->belongsTo(Rol::class, 'id_rol', 'id_rol');
-}
 
+    public function rol()
+    {
+        return $this->belongsTo(Rol::class, 'id_rol', 'id_rol');
+    }
 }

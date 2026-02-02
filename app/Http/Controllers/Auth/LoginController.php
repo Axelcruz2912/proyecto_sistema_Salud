@@ -15,57 +15,56 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-
     public function login(Request $request)
-{
-    $request->validate([
-        'correo' => 'required|email',
-        'password' => 'required'
-    ]);
-
-    $usuario = Usuario::with('credencial')
-        ->where('correo', $request->correo)
-        ->first();
-
-    // ❌ Usuario no existe
-    if (!$usuario) {
-
-        Acceso::create([
-            'id_usuario' => null,
-            'direccion_ip' => $request->ip(),
-            'exito' => false
+    {
+        $request->validate([
+            'correo' => 'required|email',
+            'password' => 'required'
         ]);
 
-        return back()->withErrors([
-            'correo' => 'El usuario no existe'
-        ]);
-    }
+        $usuario = Usuario::with(['credencial', 'rol'])
+            ->where('correo', $request->correo)
+            ->first();
 
-    // ❌ Contraseña incorrecta
-    if (!Hash::check($request->password, $usuario->credencial->contraseña_hash)) {
+        if (!$usuario) {
+            Acceso::create([
+                'id_usuario' => null,
+                'direccion_ip' => $request->ip(),
+                'exito' => false
+            ]);
+
+            return back()->withErrors([
+                'correo' => 'El usuario no existe'
+            ])->withInput();
+        }
+
+        if (!Hash::check($request->password, $usuario->credencial->contraseña_hash)) {
+            Acceso::create([
+                'id_usuario' => $usuario->id_usuario,
+                'direccion_ip' => $request->ip(),
+                'exito' => false
+            ]);
+
+            return back()->withErrors([
+                'password' => 'Contraseña incorrecta'
+            ])->withInput();
+        }
 
         Acceso::create([
             'id_usuario' => $usuario->id_usuario,
             'direccion_ip' => $request->ip(),
-            'exito' => false
+            'exito' => true
         ]);
 
-        return back()->withErrors([
-            'password' => 'Contraseña incorrecta'
-        ]);
+        Auth::login($usuario);
+        $request->session()->regenerate();
+
+        if ($usuario->rol->nombre_rol === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('usuario.dashboard');
     }
-
-    // ✅ Login correcto
-    Acceso::create([
-        'id_usuario' => $usuario->id_usuario,
-        'direccion_ip' => $request->ip(),
-        'exito' => true
-    ]);
-
-    Auth::login($usuario);
-
-    return redirect('/dashboard');
-}
 
 
     public function logout()
