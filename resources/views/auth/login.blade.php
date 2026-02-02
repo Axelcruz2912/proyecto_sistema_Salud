@@ -81,7 +81,7 @@
                 {{-- LINKS --}}
                 <div class="mt-6 text-center space-y-2">
 
-                    <a href="/recuperar-cuenta"
+                    <a href="/recuperar"
                        class="block text-sm text-blue-400 hover:text-blue-300 transition">
                         ¿Olvidaste tu contraseña?
                     </a>

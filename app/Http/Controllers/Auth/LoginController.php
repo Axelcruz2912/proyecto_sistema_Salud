@@ -6,6 +6,7 @@ use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Acceso;
 
 class LoginController extends Controller
 {
@@ -14,27 +15,58 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
+
     public function login(Request $request)
-    {
-        $request->validate([
-            'correo' => 'required|email',
-            'password' => 'required'
+{
+    $request->validate([
+        'correo' => 'required|email',
+        'password' => 'required'
+    ]);
+
+    $usuario = Usuario::with('credencial')
+        ->where('correo', $request->correo)
+        ->first();
+
+    // ❌ Usuario no existe
+    if (!$usuario) {
+
+        Acceso::create([
+            'id_usuario' => null,
+            'direccion_ip' => $request->ip(),
+            'exito' => false
         ]);
 
-        $usuario = Usuario::with('credencial')
-            ->where('correo', $request->correo)
-            ->first();
-
-        if (!$usuario || !Hash::check($request->password, $usuario->credencial->contraseña_hash)) {
-            return back()->withErrors([
-                'correo' => 'Credenciales incorrectas'
-            ]);
-        }
-
-        Auth::login($usuario);
-
-        return redirect('/dashboard');
+        return back()->withErrors([
+            'correo' => 'El usuario no existe'
+        ]);
     }
+
+    // ❌ Contraseña incorrecta
+    if (!Hash::check($request->password, $usuario->credencial->contraseña_hash)) {
+
+        Acceso::create([
+            'id_usuario' => $usuario->id_usuario,
+            'direccion_ip' => $request->ip(),
+            'exito' => false
+        ]);
+
+        return back()->withErrors([
+            'password' => 'Contraseña incorrecta'
+        ]);
+    }
+
+    // ✅ Login correcto
+    Acceso::create([
+        'id_usuario' => $usuario->id_usuario,
+        'direccion_ip' => $request->ip(),
+        'exito' => true
+    ]);
+
+    Auth::login($usuario);
+
+    return redirect('/dashboard');
+}
+
 
     public function logout()
     {
