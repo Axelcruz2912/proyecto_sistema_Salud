@@ -6,19 +6,14 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\RecuperacionController;
 
 /*
-|--------------------------------------------------------------------------
 | HOME
-|--------------------------------------------------------------------------
 */
-
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
 /*
-|--------------------------------------------------------------------------
 | AUTH
-|--------------------------------------------------------------------------
 */
 
 Route::middleware('guest')->group(function () {
@@ -29,10 +24,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth');
 
 /*
-|--------------------------------------------------------------------------
 | DASHBOARD (REDIRECT POR ROL)
-|--------------------------------------------------------------------------
-| Esta ruta SOLO decide a dónde mandar al usuario logueado
 */
 
 Route::middleware('auth')->get('/dashboard', function () {
@@ -46,9 +38,7 @@ Route::middleware('auth')->get('/dashboard', function () {
 })->name('dashboard');
 
 /*
-|--------------------------------------------------------------------------
 | DASHBOARD POR ROL
-|--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth', 'rol:admin'])->group(function () {
@@ -64,18 +54,14 @@ Route::middleware(['auth', 'rol:usuario'])->group(function () {
 });
 
 /*
-|--------------------------------------------------------------------------
 | USUARIOS
-|--------------------------------------------------------------------------
 */
 
 Route::get('/usuarios/create', [UsuarioController::class, 'create'])->middleware('guest');
 Route::post('/usuarios', [UsuarioController::class, 'store'])->middleware('guest');
 
 /*
-|--------------------------------------------------------------------------
 | RECUPERACIÓN DE CUENTA
-|--------------------------------------------------------------------------
 */
 
 Route::middleware('guest')->group(function () {
